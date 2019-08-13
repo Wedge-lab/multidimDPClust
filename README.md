@@ -74,7 +74,7 @@ The runDP R code requires **subclone_Dirichlet_Gibbs_sampler_nD_binomial_DCW.R**
 
 The third step is to run the assignment of mutations to clusters per triplet combination of samples (when no. of samples > 3).
 
-This R code for this step is **multidimclustparallel_NAP.R** which is called and executed by the bash code **multidimclustparallel_NAP.sh**. To submit the bash code to SGE, the number of parallel jobs in the jobarray must be calculated.
+The R code for this step is **multidimclustparallel_NAP.R** which is called and executed by the bash code **multidimclustparallel_NAP.sh**. To submit the bash code to SGE, the number of parallel jobs in the jobarray must be calculated.
 For example in R: choose(N,3) will give the number of triplet combinations where N is the number of samples obtained from a patient. If we have e.g. 11 samples, we will have choose(11,3)=165 triplet combinations.
 
 The submission command would look like this:
