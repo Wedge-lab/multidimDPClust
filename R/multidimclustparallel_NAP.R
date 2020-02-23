@@ -37,12 +37,6 @@ cellularities[[run]]=c(0.77,0.86,0.57,0.73,0.51,0.4,0.8,0.72) # NAP: need to rea
 samplename = samplenames[run]
 cellularity = cellularities[[run]]
 
-##########add snv info (chr and pos) for cbind with mutation.preferences and most.likely.cluster at the end of the code#
-#NOT NEEDED WITH NO_ZERO DP RUN: onfo=read.table("../snv_chr_pos_excludeindices_for_S.i",header=T,stringsAsFactors=F)
-###################
-
-#setwd("/well/wedge/naser/melanoma/vcf/30752_dip_snvs")
-
 no.subsamples = length(subsamples[[run]])
 #no.subsamples = length(subsample.indices)
 
