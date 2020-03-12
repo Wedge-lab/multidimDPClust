@@ -1,6 +1,6 @@
 # multidimDPClust
 
-This set of code allows the DPClust analysis to be undertaken at a multidimensional scale (i.e. multi-region sampling)
+This set of code allows the DPClust analysis to be undertaken at a multidimensional scale (i.e. multi-region sampling) where number of samples are ~ 4,5 or above.
 
 ## STEP ONE
 
