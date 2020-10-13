@@ -13,14 +13,18 @@ reassignInPackage("Gibbs.subclone.density.est.nd",pkgName="DPClust",Gibbs.subclo
 ####
 ####starting_point####
 
+output_folder = "DP_output"
+if(!file.exists(output_folder)){
+	dir.create(output_folder)
+}
 
-#samplename="tenX"
+samplename="patientID"
 
-subsamplenames=read.table("samplenames")
+subsamplenames=read.table("samplenames.txt")
 subsamplenames=as.vector(subsamplenames$V1)
 
 #get cellularities
-ce=read.table("cellularity")
+ce=read.table("cellularity.txt")
 cellularity=as.vector(ce$V1)
 
 
@@ -56,13 +60,17 @@ copyNumberAdjustment = copyNumberAdjustment[non.zero,]
 normalCopyNumber = normalCopyNumber[non.zero,]
 for(s in 1:length(subsamplenames)){
 data[[s]]=data[[s]][non.zero,]
+	if (s == 1){
+		#check dimension after filtering
+                print(paste("Number of retained SNVs =", nrow(data[[1]])))
+		# Chr and Pos of filtered SNVs for post-clustering mapping
+		write.table(data[[s]][,1:2],paste0(output_folder,"/",samplename,"_union_filtered_SNVs.txt"),col.names=T,row.names=F,quote=F,sep="\t")
+		}
 }
 mutation.copy.number = array(NA,dim(totalCopyNumber))
 for(i in 1:length(subsamplenames)){
 mutation.copy.number[,i] = mutationBurdenToMutationCopyNumber(mutCount[,i] / (mutCount[,i]+WTCount[,i]) , totalCopyNumber[,i], cellularity[i], normalCopyNumber[,i])
 }
-#check dimension after filtering
-print(paste(dim(data[[1]])))
 #
 #
 no.iters=1000
@@ -70,10 +78,6 @@ if(nrow(mutation.copy.number)>50000){
 	no.iters=250
 }
 
-output_folder = "DP_output"
-if(!file.exists(output_folder)){
-	dir.create(output_folder)
-}
 
 #This function does everything. It may be better to run separate function to perform Gibbs sampling and mutation assignment
 DirichletProcessClustering(mutCount = mutCount, WTCount = WTCount, totalCopyNumber = totalCopyNumber, copyNumberAdjustment = copyNumberAdjustment,
