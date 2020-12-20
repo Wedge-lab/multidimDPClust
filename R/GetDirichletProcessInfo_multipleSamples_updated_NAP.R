@@ -154,7 +154,7 @@ GetDirichletProcessInfo_multipleSamples <- function(samplenames, cellularity, mu
 		#test for subclonal mutations
 		#test whether mut burden is less than expected value for MCN = 1
 		if(length(non.zero.indices[[s]])>0){
-			p.vals1 = sapply(1:length(non.zero.indices[[s]]),function(v,e,i){prop.test(v$mut.count[i],v$mut.count[i] + v$WT.count[i],alternative="less")$p.value},v=data[[s]][non.zero.indices[[s]],], e= expected.burden.for.MCN[non.zero.indices[[s]]])
+			p.vals1 = sapply(1:length(non.zero.indices[[s]]),function(v,e,i){prop.test(v$mut.count[i],v$mut.count[i] + v$WT.count[i],e[i], alternative="less")$p.value},v=data[[s]][non.zero.indices[[s]],], e= expected.burden.for.MCN[non.zero.indices[[s]]])
 			#test whether mut burden is above error rate (assumed to be 1 in 200)
 			p.vals2[[s]] = sapply(1:length(non.zero.indices[[s]]),function(v,i){prop.test(v$mut.count[i],v$mut.count[i] + v$WT.count[i],0.005,alternative="greater")$p.value},v=data[[s]][non.zero.indices[[s]],])
 
