@@ -165,25 +165,39 @@ GetDirichletProcessInfo_multipleSamples <- function(samplenames, cellularity, mu
 			subclonal.muts = integer(0)
 		}
 		
-		# use subclonal CN that minimises the difference in subclonal fraction from 1
-		if(length(subclonal.muts)>0){
-			for(a in 1:length(subclonal.muts)){
-				#if there are no subclonal CNVs, don't adjust subclonal fraction
-				if(is.na(data[[s]]$frac2[subclonal.muts[a]])){next}
-				#assume subclonal muts are on one chromosome copy, therefore mutation copy number must be subclonal fraction of the higher CN subclone (i.e. lost in lower CN subclone) or 1 (i.e. present in both subclones)
-				if(data[[s]]$nMaj1[subclonal.muts[a]]+data[[s]]$nMin1[subclonal.muts[a]] > data[[s]]$nMaj2[subclonal.muts[a]]+data[[s]]$nMin2[subclonal.muts[a]]){	
-					possible.subclonal.fractions = c(data[[s]]$frac1[subclonal.muts[a]],1)
-				}else{
-					possible.subclonal.fractions = c(data[[s]]$frac2[subclonal.muts[a]],1)
-				}
-				best.CN = possible.subclonal.fractions[which.min(abs(data[[s]]$mutation.copy.number[subclonal.muts[a]]/possible.subclonal.fractions - 1))]
-				#extra test 200313 - check whether subclonal CN results in clonal mutation, otherwise subclonal CN doesn't explain subclonal MCN
-				if(best.CN != 1 & prop.test(data[[s]]$mut.count[subclonal.muts[a]],data[[s]]$mut.count[subclonal.muts[a]]+data[[s]]$WT.count[subclonal.muts[a]],expected.burden.for.MCN[subclonal.muts[a]] * best.CN)$p.value > 0.05){
-					data[[s]]$subclonal.fraction[subclonal.muts[a]] = data[[s]]$mutation.copy.number[subclonal.muts[a]] / best.CN
-					data[[s]]$no.chrs.bearing.mut[subclonal.muts[a]] = best.CN
-				}
-			}
-		}
+    # use subclonal CN that minimises the difference in subclonal fraction from 1
+    # NAP: get best.CN for subclonal mutation to test whether assigning to a CNA subclone better matches the observed VAF with the expected VAF (obtained from MCN * best.CN) #
+    if(length(subclonal.muts)>0){
+      for(a in 1:length(subclonal.muts)){
+        #if there are no subclonal CNVs, don't adjust subclonal fraction
+        if(is.na(data[[s]]$frac2[subclonal.muts[a]])){next}
+        #assume subclonal muts are on one chromosome copy, therefore mutation copy number must be subclonal fraction of the higher CN subclone (i.e. lost in lower CN subclone) or 1 (i.e. present in both subclones)
+        if(data[[s]]$nMaj1[subclonal.muts[a]]+data[[s]]$nMin1[subclonal.muts[a]] > data[[s]]$nMaj2[subclonal.muts[a]]+data[[s]]$nMin2[subclonal.muts[a]]){
+          # NAP: additional loop for special case when subclonal fractions have 2:1 and 1:1 copy number states - most likely scenario is gain of 1 copy in smaller subclone vs subclonal copy loss
+          if (data[[s]]$nMaj1[subclonal.muts[a]]==2 & data[[s]]$nMin1[subclonal.muts[a]]==1 & data[[s]]$nMaj2[subclonal.muts[a]]==1 & data[[s]]$nMin2[subclonal.muts[a]]==1){
+            possible.subclonal.fractions = c(1+data[[s]]$frac1[subclonal.muts[a]],1) # NAP: 1+frac1 = assuming subclonal gain
+          } else {
+            possible.subclonal.fractions = c(data[[s]]$frac1[subclonal.muts[a]],1)
+            }
+          } else {
+          # NAP: additional loop for special case when subclonal fractions have 1:1 and 2:1 copy number states - most likely scenario is gain of 1 copy in larger subclone vs subclonal copy loss
+          if (data[[s]]$nMaj1[subclonal.muts[a]]==1 & data[[s]]$nMin1[subclonal.muts[a]]==1 & data[[s]]$nMaj2[subclonal.muts[a]]==2 & data[[s]]$nMin2[subclonal.muts[a]]==1){
+            possible.subclonal.fractions = c(1+data[[s]]$frac2[subclonal.muts[a]],1) # NAP: 1+frac2 = assuming subclonal gain
+          } else {
+          possible.subclonal.fractions = c(data[[s]]$frac2[subclonal.muts[a]],1)
+          }
+        }
+        best.CN = possible.subclonal.fractions[which.min(abs(data[[s]]$mutation.copy.number[subclonal.muts[a]]/possible.subclonal.fractions - 1))] # NAP: which fraction is closer to the MCN of the mutation ; min(|proportion-1|)
+  
+        #NAP: if you apply best.CN (which is either frac1/1+frac1 or frac2/1+frac2 and NOT 1), is the deviation of the observed VAF non-significant from expectedVAF based on MCN? I.e. are we close enough to the observed VAF?
+        
+        #extra test 200313 - check whether subclonal CN results in clonal mutation, otherwise subclonal CN doesn't explain subclonal MCN
+        if(best.CN != 1 & prop.test(data[[s]]$mut.count[subclonal.muts[a]],data[[s]]$mut.count[subclonal.muts[a]]+data[[s]]$WT.count[subclonal.muts[a]],expected.burden.for.MCN[subclonal.muts[a]] * best.CN)$p.value > 0.05){
+          data[[s]]$subclonal.fraction[subclonal.muts[a]] = data[[s]]$mutation.copy.number[subclonal.muts[a]] / best.CN
+          data[[s]]$no.chrs.bearing.mut[subclonal.muts[a]] = best.CN
+        }
+      }
+    }
 
 		write.table(data[[s]], out.files[s,1],sep="\t",row.names=F,quote=F)
 	}
