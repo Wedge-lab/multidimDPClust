@@ -1,8 +1,3 @@
----
-output:
-  html_document: default
-  pdf_document: default
----
 
 <!-- 
 README for running multisample DPClust pipeline  
