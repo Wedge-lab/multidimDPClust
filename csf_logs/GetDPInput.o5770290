@@ -1,0 +1,16 @@
+[1] "DW5_11_C009453T1FTa_S1"  "DW5_12_C009453T1FTb_S2" 
+[3] "DW5_30_C009453T3FTa_S20"
+[1] "DW5_11_C009453T1FTa_S1"  "DW5_12_C009453T1FTb_S2" 
+[3] "DW5_30_C009453T3FTa_S20"
+[1] 0.44988 0.28560 0.18684
+[1] "Male"
+[1] TRUE
+[1] "/mnt/bmh01-rds/UoOxford_David_W/r44399mg/CRPM/BB2210//DW5_11_C009453T1FTa_S1/DW5_11_C009453T1FTa_S1_subclones_with_chr.txt"  
+[2] "/mnt/bmh01-rds/UoOxford_David_W/r44399mg/CRPM/BB2210//DW5_12_C009453T1FTb_S2/DW5_12_C009453T1FTb_S2_subclones_with_chr.txt"  
+[3] "/mnt/bmh01-rds/UoOxford_David_W/r44399mg/CRPM/BB2210//DW5_30_C009453T3FTa_S20/DW5_30_C009453T3FTa_S20_subclones_with_chr.txt"
+             sample subsample             samplenames cellularity gender
+1 DW111230_original        01  DW5_11_C009453T1FTa_S1     0.44988   Male
+2 DW111230_original        02  DW5_12_C009453T1FTb_S2     0.28560   Male
+3 DW111230_original        03 DW5_30_C009453T3FTa_S20     0.18684   Male
+[1] "subclones file OK"
+[1] "subclones file OK"

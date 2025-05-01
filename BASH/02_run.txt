@@ -1,0 +1,15 @@
+#!/bin/bash --login
+#$ -cwd
+#$ -N WTmut
+#$ -pe amd.pe 4
+#$ -o ../csf_logs/
+#$ -e ../csf_logs/
+
+module load apps/binapps/anaconda3/2022.10
+source activate envs
+
+case=${1}
+run_info_path=${2}
+outpath=${3}
+
+python ./02_GenerateMutWT.py $case ${run_info_path} ${outpath} 

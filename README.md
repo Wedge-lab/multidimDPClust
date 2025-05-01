@@ -1,91 +1,130 @@
-# multidimDPClust
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 
-This set of code allows the DPClust analysis to be undertaken at a multidimensional scale (i.e. multi-region sampling) where number of samples are ~ 4,5 or above.
+<!-- 
+README for running multisample DPClust pipeline  
+Created by: Miaomiao Gao  
+Contact: miaomiao.gao@postgrad.manchester.ac.uk  
+-->
 
-## STEP ONE
+# Pipeline for Multisample DPClust
 
-The first step is to create the multidimensional input files for DPClust.
+This pipeline is designed to cluster somatic SNVs from multiple tumor samples of a single individual and reconstruct the phylogenetic tree.
 
-The R code for this step is **GetDirichletProcessInfo_multipleSamples_updated_NAP.R** which can be run like
+---
 
-Rscript GetDirichletProcessInfo_multipleSamples_updated_NAP.R
+## Prerequisites
 
-This code requires **interconvertMutationBurdens.R** as input which is sourced at the beginning.
+Before running the pipeline, you must prepare the following:
 
-For this to run you need to produce a number of files as input:
+### 1. Run Battenberg and SNV Calling
 
-### 1) samplenames
+- Use **Battenberg** to call CNVs and a mutation caller (e.g., Mutect2) to generate an SNV VCF file for each tumor sample.
+- Prepare the paths to your BAM and SNV files: `Bam_file_path` and `snv_path`.
 
-This is a file with the names of the samples for a particular patient:
+The expected structure is that the VCF files are stored under `${snv_path}/${sample_name}/0001.vcf`.  
+If your folder structure differs, you can modify:
+- `snv_path` in `00_generate_loci_AF.R`
+- `Bam_file_path` in `01_allele_count.txt`
 
-Patient1a\
-Patient1b\
-Patient1c
+---
 
-### 2) cellularity
+### 2. Create the `run_info.txt` File
 
-This is a file with the cellularity/purity values for the samples:
+This file stores sample metadata for one case. You can define the case name arbitrarily.  
+The `useBBfolder` column is used to locate subclone and purity information from the Battenberg output.
 
-0.76\
-0.83\
-0.86
+Example:
 
-### 3) subclone.files
+| case              | Tumour                      | useBBfolder                      | Gender | Normal                    |
+|-------------------|-----------------------------|----------------------------------|--------|----------------------------|
+| DW111230_original | DW5_11_C009453T1FTa_S1      | DW5_11_C009453T1FTa_S1           | Male   | DW5_35_C009453T2Wa_S25     |
+| DW111230_original | DW5_12_C009453T1FTb_S2      | DW5_12_C009453T1FTb_S2           | Male   | DW5_35_C009453T2Wa_S25     |
+| DW111230_original | DW5_30_C009453T3FTa_S20     | DW5_30_C009453T3FTa_S20_reft_WGD | Male   | DW5_35_C009453T2Wa_S25     |
 
-This file contains the name (including path if required) of the subclones.txt files obtained from Battenberg
+Make sure you define the following:
+- `BB_file_path`: path to Battenberg outputs
+- `run_info_path`: path to the `run_info.txt` file  
+Note: The `subclone.txt` file is expected at `${BB_file_path}/${sample_name}/subclone.txt`.
 
-Patient1a.subclones.txt\
-Patient1b.subclones.txt\
-Patient1c.subclones.txt
+---
 
-### 4) mutCount and WTCount
+### 3. Configure `pipeline.sh`
 
-These files contain the raw counts of ref (WTCount) and alt (mutCount) alleles at each SNV to be used for mutation clustering with DPClust.
+Edit `pipeline.sh` and set the following parameters:
+- `case`: e.g., `DW111230_original`
+- `sample_num`: number of tumor samples (e.g., 3)
+- `run_in_parallel`: number of 3-sample combinations from total samples.  
+  For example:
+  - 8 samples → 56 combinations
+  - 3 samples → 1 combination
 
-ID	Patient1a	Patient1b	Patient1c\
-1_14000	7		8		0\
-2_23400 0		10		9\
-14_1230	12		0		0\
-17_9876	11		9		13
+You can either pass these values as parameters or hardcode them in the `pipeline.sh` script.  
+See the provided `pipeline.sh` for examples.
 
-where ID is CHROM_POSITION of SNVs
+---
 
-*IMPORTANT NOTE: remove any SNV which is absent in all samples (i.e. 0 in all samples)*
+### 4. Run the Pipeline
 
-To generate these files the following steps need to be taken:
+Execute the pipeline using:
 
-i) get union list of SNVs across the multiple samples from their respective VCF files
-
-ii) Run **alleleCounter** on the BAM files of the multiple samples for the SNVs in the union loci list. The BAM index file (.bai) is required - if not present, run **samtools index BAMfile** to get it.
-
-iii) match counts from alleleCounter with the SNV alleles of the union loci list and generate the WTCount and mutCount files.
-
-*NOTE: please contact me if you have any difficulty with steps i)-iii).*
-
-## STEP TWO
-
-The second step is to run the DP clustering on the samples.
-
-**submitDP_NAP.sh** submits the bash code **runDP_new_nonzero_NAP.sh** which in turn calls and executes **runDP_new_nonzero_NAP.R**
-
-The runDP R code requires **subclone_Dirichlet_Gibbs_sampler_nD_binomial_DCW.R** and **plotnD.DCW.R** as input to reassign functions in the DPClust package for the purposes of running multidimensional DP and are sourced at the beginning.
-
-## STEP THREE
-
-The third step is to run the assignment of mutations to clusters per triplet combination of samples (when no. of samples > 3).
-
-The R code for this step is **multidimclustparallel_NAP.R** which is called and executed by the bash code **multidimclustparallel_NAP.sh**. To submit the bash code to SGE, the number of parallel jobs in the jobarray must be calculated.
-For example in R: choose(N,3) will give the number of triplet combinations where N is the number of samples obtained from a patient. If we have e.g. 11 samples, we will have choose(11,3)=165 triplet combinations.
-
-The submission command would look like this:
-
-**qsub -q QUEUE_NAME -cwd -t 1-165 -o /dev/null -e /dev/null multidimclustparallel_NAP.sh**
+```bash
+sh pipeline.sh 1
+```
+1 here refers to the patient number (you can define your own indexing).
 
 
-## STEP FOUR
 
-The fourth and final step is to combine the clustering assignments across all triplets.
+## Pipeline Overview
 
-The R code for this is **combineClusteringParallelByAssignment_NAP.R** which can be run like
+The pipeline includes the following 7 main steps:
 
-Rscript combineClusteringParallelByAssignment_NAP.R
+### Step 0: `00_generate_loci_AF.R`
+Generates a unified list of loci from all tumor samples of a given case.
+
+### Step 1: `01_allele_count.txt`
+Counts the reference and alternative read counts at each locus for each sample.
+
+> **Tip**: If you encounter a "Permission Denied" error, run:
+> ```bash
+> chmod 777 alleleCounter
+> ```
+
+### Step 2: `02_GenerateMutWT.py`
+Generates `wt_count` and `mut_count` files required for downstream clustering.
+
+### Step 3: `03_Get_DP_Input.txt`
+Creates input files compatible with DPClust.
+
+### Step 4: `04_runDP_GS.txt`
+Performs Gibbs sampling using DPClust to infer cluster structures.
+
+### Step 5: `05_parallel_assign_mutations.txt`
+Assigns mutations to clusters using combinations of 3 samples at a time.
+
+### Step 6: `06_combine.txt`
+Combines all assignment results across combinations to generate a final clustering outcome.
+
+> **Note**:  
+> In the single-sample DPClust workflow, Steps 4–6 are executed together.  
+> However, for multisample analysis (sample number > 3), Step 5 is run on all 3-sample combinations to avoid memory issues, and Step 6 aggregates the results.
+
+---
+
+## Notes
+
+- Ensure that all file paths (e.g., `snv_path`, `Bam_file_path`, `BB_file_path`) are correctly specified in the relevant scripts.
+- The final outputs include mutation cluster assignments, inferred tree topologies, and associated metrics.
+- The pipeline assumes that DPClust and all required dependencies are properly installed in your environment.
+
+---
+
+## Contact
+
+For questions or troubleshooting, please contact:
+
+**Miaomiao Gao**  
+📧 miaomiao.gao@postgrad.manchester.ac.uk

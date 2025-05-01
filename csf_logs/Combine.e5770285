@@ -1,0 +1,8 @@
+
+EnvironmentNameNotFound: Could not find conda environment: env
+You can list all discoverable environments with `conda info --envs`.
+
+
+Error in plot.window(...) : need finite 'xlim' values
+Calls: plot -> plot.default -> localWindow -> plot.window
+Execution halted

@@ -1,0 +1,21 @@
+#!/bin/bash --login
+#$ -cwd
+#$ -N Combine
+#$ -pe amd.pe 4
+#$ -o ../csf_logs/
+#$ -e ../csf_logs/
+
+module load apps/gcc/R/4.1.2
+module load apps/binapps/anaconda3/2022.10
+source activate env
+
+case=${1}
+echo case
+outpath=${2}
+echo $outpath
+
+Rscript ../R/combineClusteringParallelByAssignment.R ${case} ${outpath}
+
+
+
+

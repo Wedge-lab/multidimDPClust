@@ -1,0 +1,15 @@
+#!/bin/bash --login
+#$ -cwd
+#$ -N GetDPInput
+#$ -pe amd.pe 4
+#$ -o ../csf_logs/
+#$ -e ../csf_logs/
+
+module load apps/gcc/R/4.1.2
+
+case=${1}
+run_info_path=${2}
+BB_file_path=${3}
+outpath=${4}
+
+Rscript ../R/GetDirichletProcessInfo_multipleSamples_updated_NAP_s3.R ${case} ${run_info_path} ${BB_file_path} ${outpath} 

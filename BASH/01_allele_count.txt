@@ -1,0 +1,29 @@
+#!/bin/bash
+#$ -cwd
+#$ -N AC
+#$ -pe amd.pe 4
+#$ -o ../csf_logs/
+#$ -e ../csf_logs/
+
+
+case=${1}
+echo $case
+Bam_file_path=${2}
+outpath=${3}
+
+mapfile -t tumours < <(awk '{print $1}' "${outpath}/${case}/DPinput/sample_name.txt")
+
+FILE=${tumours[${SGE_TASK_ID}]}
+echo ${FILE}
+
+tumorSample=${Bam_file_path}/${FILE}/${FILE}.bam
+
+
+../allelecount/alleleCounter \
+-l ${outpath}/$case/DPinput/${case}_loci_combined.txt \
+-b ${tumorSample} \
+-o ${outpath}/$case/DPinput/${FILE}_aC_out
+
+
+
+

@@ -1,0 +1,17 @@
+#!/bin/bash --login
+#$ -cwd
+#$ -N GetLoci
+#$ -pe amd.pe 4
+#$ -o ../csf_logs/
+#$ -e ../csf_logs/
+
+module load apps/gcc/R/4.1.2
+
+
+
+case=${1}
+snv_path=${2}
+run_info_path=${3}
+outpath=${4}
+
+Rscript ./00_generate_loci_AF.R ${case} ${snv_path} ${run_info_path} ${outpath} 

@@ -1,0 +1,25 @@
+#!/bin/bash --login
+#$ -cwd
+#$ -pe amd.pe 4
+#$ -N ParallelAm
+#$ -o ../csf_logs/
+#$ -e ../csf_logs/
+
+
+module load apps/gcc/R/4.1.2
+
+case=${1}
+patient=1
+samplenum=${2}
+runintriplets=3
+outpath=${3}
+echo $outpath
+
+echo "sample number is " ${samplenum}
+
+export R_LIBS=/mnt/bmh01-rds/UoOxford_David_W/shared/projects/shared_R_libs_412
+
+Rscript ../R/multidimclustparallel_Miao.R ${case} ${patient} ${samplenum} ${runintriplets} ${SGE_TASK_ID} ${outpath}
+
+
+
