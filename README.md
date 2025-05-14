@@ -114,7 +114,15 @@ Combines all assignment results across combinations to generate a final clusteri
 - Ensure that all file paths (e.g., `snv_path`, `Bam_file_path`, `BB_file_path`) are correctly specified in the relevant scripts.
 - The final outputs include mutation cluster assignments, inferred tree topologies, and associated metrics.
 - The pipeline assumes that DPClust and all required dependencies are properly installed in your environment.
-
+  - Python:
+    - pandas
+  - R:
+    - tidyr
+    - DPClust
+    - MASS
+    - MCMCpack
+    - mvtnorm
+    - ks
 ---
 
 ## Contact
